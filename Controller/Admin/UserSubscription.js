@@ -89,19 +89,27 @@ class UserSubscriptionController {
   // Check if user has valid subscription for specific exam
   async checkSubscription(req, res) {
     try {
-      const { userId, subclassId, examinationName } = req.body;
+      const { userId, subclassId, subclassName, examinationName } = req.body;
 
       if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
       }
 
-      // Find active subscription for this subclass
-      const userSubscription = await UserSubscription.findOne({
+      // Build query - support both subclassId and subclassName
+      const query = {
         userId,
-        subclassId,
         isActive: true,
         expiryDate: { $gt: new Date() },
-      });
+      };
+      
+      if (subclassId) {
+        query.subclassId = subclassId;
+      } else if (subclassName) {
+        query.subclassName = subclassName;
+      }
+
+      // Find active subscription for this subclass
+      const userSubscription = await UserSubscription.findOne(query);
 
       if (!userSubscription) {
         return res.status(200).json({
@@ -152,14 +160,22 @@ class UserSubscriptionController {
   // Use a paper from subscription (call this after generating question paper)
   async usePaper(req, res) {
     try {
-      const { userId, subclassId, examinationName } = req.body;
+      const { userId, subclassId, subclassName, examinationName } = req.body;
 
-      const userSubscription = await UserSubscription.findOne({
+      // Build query - support both subclassId and subclassName
+      const query = {
         userId,
-        subclassId,
         isActive: true,
         expiryDate: { $gt: new Date() },
-      });
+      };
+      
+      if (subclassId) {
+        query.subclassId = subclassId;
+      } else if (subclassName) {
+        query.subclassName = subclassName;
+      }
+
+      const userSubscription = await UserSubscription.findOne(query);
 
       if (!userSubscription) {
         return res.status(404).json({ error: "No active subscription found" });
