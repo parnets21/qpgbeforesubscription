@@ -47,6 +47,9 @@ class UserSubscriptionController {
       const expiryDate = new Date();
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
+      // Generate unique paymentId if empty to avoid duplicate key error
+      const uniquePaymentId = paymentId || `SUB_${userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
       const userSubscription = await UserSubscription.create({
         userId,
         subscriptionId,
@@ -55,8 +58,8 @@ class UserSubscriptionController {
         subclassName: subscription.subclassName,
         examinations,
         price: subscription.price,
-        paymentId,
-        transactionId,
+        paymentId: uniquePaymentId,
+        transactionId: transactionId || uniquePaymentId,
         expiryDate,
       });
 

@@ -656,7 +656,6 @@ class BLUEPRINT {
       return res.status(500).json({ error: "Internal server error" });
     }
   }
-
   async updateBLUEPRINT(req, res) {
     try {
       let {
