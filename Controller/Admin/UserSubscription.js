@@ -93,6 +93,12 @@ class UserSubscriptionController {
     try {
       const { userId, subclassId, subclassName, examinationName, subjectName } = req.body;
 
+      console.log("=== Subscription Check ===");
+      console.log("userId:", userId);
+      console.log("subclassName:", subclassName);
+      console.log("examinationName:", examinationName);
+      console.log("subjectName:", subjectName);
+
       if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
       }
@@ -113,6 +119,11 @@ class UserSubscriptionController {
       // Find active subscription for this subclass
       const userSubscription = await UserSubscription.findOne(query);
 
+      console.log("Found subscription:", userSubscription ? "Yes" : "No");
+      if (userSubscription) {
+        console.log("Subscription examinations:", JSON.stringify(userSubscription.examinations));
+      }
+
       if (!userSubscription) {
         return res.status(200).json({
           hasSubscription: false,
@@ -120,11 +131,14 @@ class UserSubscriptionController {
         });
       }
 
-      // Find the examination + subject combination in the subscription
-      const examination = userSubscription.examinations.find(
-        (exam) => exam.examinationName === examinationName && 
-                  (!subjectName || exam.subjectName === subjectName)
-      );
+      // Find the examination + subject combination in the subscription (case-insensitive)
+      const examination = userSubscription.examinations.find((exam) => {
+        const examMatch = exam.examinationName?.toLowerCase().trim() === examinationName?.toLowerCase().trim();
+        const subjectMatch = !subjectName || exam.subjectName?.toLowerCase().trim() === subjectName?.toLowerCase().trim();
+        console.log(`Comparing: "${exam.examinationName}" vs "${examinationName}" = ${examMatch}`);
+        console.log(`Comparing: "${exam.subjectName}" vs "${subjectName}" = ${subjectMatch}`);
+        return examMatch && subjectMatch;
+      });
 
       if (!examination) {
         return res.status(200).json({
