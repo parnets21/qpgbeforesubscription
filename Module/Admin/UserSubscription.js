@@ -33,6 +33,13 @@ const UserSubscriptionSchema = new mongoose.Schema(
         examinationName: {
           type: String,
         },
+        subjectId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "subjectData",
+        },
+        subjectName: {
+          type: String,
+        },
         totalPapers: {
           type: Number,
           default: 0,

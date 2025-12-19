@@ -24,6 +24,13 @@ const SubscriptionSchema = new mongoose.Schema(
         examinationName: {
           type: String,
         },
+        subjectId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "subjectData",
+        },
+        subjectName: {
+          type: String,
+        },
         questionPapers: {
           type: Number,
           default: 1,

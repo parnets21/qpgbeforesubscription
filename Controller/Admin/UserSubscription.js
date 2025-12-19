@@ -37,6 +37,8 @@ class UserSubscriptionController {
       const examinations = subscription.examinations.map((exam) => ({
         examinationId: exam.examinationId,
         examinationName: exam.examinationName,
+        subjectId: exam.subjectId,
+        subjectName: exam.subjectName,
         totalPapers: exam.questionPapers || 1,
         usedPapers: 0,
       }));
@@ -86,10 +88,10 @@ class UserSubscriptionController {
     }
   }
 
-  // Check if user has valid subscription for specific exam
+  // Check if user has valid subscription for specific exam + subject
   async checkSubscription(req, res) {
     try {
-      const { userId, subclassId, subclassName, examinationName } = req.body;
+      const { userId, subclassId, subclassName, examinationName, subjectName } = req.body;
 
       if (!userId) {
         return res.status(400).json({ error: "User ID is required" });
@@ -118,9 +120,10 @@ class UserSubscriptionController {
         });
       }
 
-      // Find the examination in the subscription
+      // Find the examination + subject combination in the subscription
       const examination = userSubscription.examinations.find(
-        (exam) => exam.examinationName === examinationName
+        (exam) => exam.examinationName === examinationName && 
+                  (!subjectName || exam.subjectName === subjectName)
       );
 
       if (!examination) {
@@ -160,7 +163,7 @@ class UserSubscriptionController {
   // Use a paper from subscription (call this after generating question paper)
   async usePaper(req, res) {
     try {
-      const { userId, subclassId, subclassName, examinationName } = req.body;
+      const { userId, subclassId, subclassName, examinationName, subjectName } = req.body;
 
       // Build query - support both subclassId and subclassName
       const query = {
@@ -181,9 +184,10 @@ class UserSubscriptionController {
         return res.status(404).json({ error: "No active subscription found" });
       }
 
-      // Find and update the examination
+      // Find and update the examination + subject combination
       const examIndex = userSubscription.examinations.findIndex(
-        (exam) => exam.examinationName === examinationName
+        (exam) => exam.examinationName === examinationName && 
+                  (!subjectName || exam.subjectName === subjectName)
       );
 
       if (examIndex === -1) {
