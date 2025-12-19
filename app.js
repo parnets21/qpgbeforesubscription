@@ -51,6 +51,8 @@ const PaymentReceiptRoute = require("./Routes/Admin/Email/paymentReceipt");
 const ResultSheetmanagementRoutes = require("./Routes/Admin/ResultSheetmanagementRoutes"); 
 const RefferAndEarn = require("./Routes/Teacher/referralRoutes")  
 const Tutorial = require("./Routes/Admin/TutorialRoutes");
+const Subscription = require("./Routes/Admin/Subscription");
+const UserSubscription = require("./Routes/Admin/UserSubscription");
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cors());
@@ -95,6 +97,8 @@ app.use("/api/admin",CoverPage);
 app.use("/api/Teacher", phonepe);   
 app.use("/api/ResultSheet",ResultSheet)
 app.use("/api/admin",PaymentReceiptRoute);   
+app.use("/api/admin",Subscription)
+app.use("/api/admin",UserSubscription)
 app.use("/api/admin",ResultSheetmanagementRoutes);   
 // app.use("/api/admin",Tutorial)
 app.use("/api/admin/tut",Tutorial)
