@@ -103,24 +103,32 @@ class UserSubscriptionController {
         return res.status(400).json({ error: "User ID is required" });
       }
 
-      // Build query - support both subclassId and subclassName
-      const query = {
+      // First, find ALL active subscriptions for this user to debug
+      const allUserSubs = await UserSubscription.find({
         userId,
         isActive: true,
         expiryDate: { $gt: new Date() },
-      };
+      });
       
-      if (subclassId) {
-        query.subclassId = subclassId;
-      } else if (subclassName) {
-        query.subclassName = subclassName;
-      }
+      console.log("All user subscriptions count:", allUserSubs.length);
+      allUserSubs.forEach((sub, i) => {
+        console.log(`Sub ${i}: subclassName="${sub.subclassName}", exams:`, sub.examinations.map(e => `${e.examinationName}|${e.subjectName}`));
+      });
 
-      // Find active subscription for this subclass
-      const userSubscription = await UserSubscription.findOne(query);
+      // Find subscription that matches - check if subclassName contains the value or vice versa
+      const userSubscription = allUserSubs.find(sub => {
+        // Try exact match first
+        if (sub.subclassName === subclassName) return true;
+        // Try if subscription subclassName contains the search value
+        if (sub.subclassName?.includes(subclassName)) return true;
+        // Try if search value contains subscription subclassName
+        if (subclassName?.includes(sub.subclassName)) return true;
+        return false;
+      });
 
-      console.log("Found subscription:", userSubscription ? "Yes" : "No");
+      console.log("Found matching subscription:", userSubscription ? "Yes" : "No");
       if (userSubscription) {
+        console.log("Matched subclassName:", userSubscription.subclassName);
         console.log("Subscription examinations:", JSON.stringify(userSubscription.examinations));
       }
 
