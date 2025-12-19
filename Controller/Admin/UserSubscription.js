@@ -118,11 +118,12 @@ class UserSubscriptionController {
         console.log(`Sub ${i}: subclassName="${sub.subclassName}", exams:`, sub.examinations.map(e => `${e.examinationName}|${e.subjectName}`));
       });
 
-      // Search ALL subscriptions for matching exam + subject (class check is optional)
+      // Search ALL subscriptions for matching exam + subject WITH AVAILABLE PAPERS
       let matchedSubscription = null;
       let matchedExamination = null;
+      let exhaustedSubscription = null; // Track if we found a match but with no papers left
 
-      // First try: Match class + exam + subject
+      // Search all subscriptions and find one with available papers
       for (const sub of allUserSubs) {
         const classMatch = sub.subclassName === subclassName || 
                           sub.subclassName?.includes(subclassName) || 
@@ -136,44 +137,64 @@ class UserSubscriptionController {
                               !e.subjectName || 
                               e.subjectName?.toLowerCase().trim() === subjectName?.toLowerCase().trim();
           
-          console.log(`[Class Match] Comparing: "${e.examinationName}" vs "${examinationName}" = ${examMatch}`);
-          console.log(`[Class Match] Comparing: "${e.subjectName}" vs "${subjectName}" = ${subjectMatch}`);
-          
           return examMatch && subjectMatch;
         });
 
         if (exam) {
-          matchedSubscription = sub;
-          matchedExamination = exam;
-          break;
+          const remaining = exam.totalPapers - exam.usedPapers;
+          console.log(`Found exam in sub ${sub.subscriptionName}: ${remaining}/${exam.totalPapers} papers remaining`);
+          
+          // If this subscription has papers available, use it
+          if (remaining > 0) {
+            matchedSubscription = sub;
+            matchedExamination = exam;
+            console.log(`✅ Using subscription "${sub.subscriptionName}" with ${remaining} papers left`);
+            break; // Found a good one, stop searching
+          } else {
+            // Track this as exhausted but keep searching for one with papers
+            exhaustedSubscription = { sub, exam };
+            console.log(`⚠️ Subscription "${sub.subscriptionName}" has no papers left, continuing search...`);
+          }
         }
       }
 
-      // Second try: If no class match, search ALL subscriptions for just exam match
+      // If no subscription with available papers found, search ALL subscriptions (ignore class)
       if (!matchedSubscription) {
-        console.log("No class+exam match found, searching all subscriptions for exam only...");
+        console.log("No class+exam match with papers found, searching all subscriptions...");
         for (const sub of allUserSubs) {
           const exam = sub.examinations.find((e) => {
             const examMatch = e.examinationName?.toLowerCase().trim() === examinationName?.toLowerCase().trim();
             const subjectMatch = !subjectName || 
                                 !e.subjectName || 
                                 e.subjectName?.toLowerCase().trim() === subjectName?.toLowerCase().trim();
-            
-            console.log(`[Any Sub] Comparing: "${e.examinationName}" vs "${examinationName}" = ${examMatch}`);
-            
             return examMatch && subjectMatch;
           });
 
           if (exam) {
-            matchedSubscription = sub;
-            matchedExamination = exam;
-            console.log(`Found exam in different class subscription: ${sub.subclassName}`);
-            break;
+            const remaining = exam.totalPapers - exam.usedPapers;
+            if (remaining > 0) {
+              matchedSubscription = sub;
+              matchedExamination = exam;
+              console.log(`✅ Found exam in different class subscription "${sub.subscriptionName}" with ${remaining} papers`);
+              break;
+            } else if (!exhaustedSubscription) {
+              exhaustedSubscription = { sub, exam };
+            }
           }
         }
       }
 
-      console.log("Found matching subscription:", matchedSubscription ? "Yes" : "No");
+      console.log("Found matching subscription with papers:", matchedSubscription ? "Yes" : "No");
+
+      // If no subscription with available papers, but we found exhausted ones
+      if (!matchedSubscription && exhaustedSubscription) {
+        return res.status(200).json({
+          hasSubscription: false,
+          message: "You have used all papers for this examination in all your subscriptions",
+          usedPapers: exhaustedSubscription.exam.usedPapers,
+          totalPapers: exhaustedSubscription.exam.totalPapers,
+        });
+      }
 
       if (!matchedSubscription || !matchedExamination) {
         return res.status(200).json({
@@ -182,17 +203,8 @@ class UserSubscriptionController {
         });
       }
 
-      // Check if papers are available
+      // We have a subscription with available papers
       const remainingPapers = matchedExamination.totalPapers - matchedExamination.usedPapers;
-
-      if (remainingPapers <= 0) {
-        return res.status(200).json({
-          hasSubscription: false,
-          message: "You have used all papers for this examination",
-          usedPapers: matchedExamination.usedPapers,
-          totalPapers: matchedExamination.totalPapers,
-        });
-      }
 
       return res.status(200).json({
         hasSubscription: true,
@@ -225,11 +237,11 @@ class UserSubscriptionController {
         return res.status(404).json({ error: "No active subscription found" });
       }
 
-      // Search ALL subscriptions for matching exam + subject
+      // Search ALL subscriptions for matching exam + subject WITH AVAILABLE PAPERS
       let matchedSubscription = null;
       let matchedExamIndex = -1;
 
-      // First try: Match class + exam + subject
+      // Search all subscriptions and find one with available papers
       for (const sub of allUserSubs) {
         const classMatch = sub.subclassName === subclassName || 
                           sub.subclassName?.includes(subclassName) || 
@@ -246,13 +258,19 @@ class UserSubscriptionController {
         });
 
         if (examIndex !== -1) {
-          matchedSubscription = sub;
-          matchedExamIndex = examIndex;
-          break;
+          const exam = sub.examinations[examIndex];
+          const remaining = exam.totalPapers - exam.usedPapers;
+          
+          // Only use this subscription if it has papers available
+          if (remaining > 0) {
+            matchedSubscription = sub;
+            matchedExamIndex = examIndex;
+            break;
+          }
         }
       }
 
-      // Second try: If no class match, search ALL subscriptions for just exam match
+      // If no subscription with available papers found, search ALL subscriptions (ignore class)
       if (!matchedSubscription) {
         for (const sub of allUserSubs) {
           const examIndex = sub.examinations.findIndex((e) => {
@@ -264,21 +282,23 @@ class UserSubscriptionController {
           });
 
           if (examIndex !== -1) {
-            matchedSubscription = sub;
-            matchedExamIndex = examIndex;
-            break;
+            const exam = sub.examinations[examIndex];
+            const remaining = exam.totalPapers - exam.usedPapers;
+            
+            if (remaining > 0) {
+              matchedSubscription = sub;
+              matchedExamIndex = examIndex;
+              break;
+            }
           }
         }
       }
 
       if (!matchedSubscription || matchedExamIndex === -1) {
-        return res.status(404).json({ error: "Examination not found in subscription" });
+        return res.status(404).json({ error: "No subscription with available papers found for this examination" });
       }
 
       const exam = matchedSubscription.examinations[matchedExamIndex];
-      if (exam.usedPapers >= exam.totalPapers) {
-        return res.status(400).json({ error: "No papers remaining for this examination" });
-      }
 
       // Increment used papers
       matchedSubscription.examinations[matchedExamIndex].usedPapers += 1;
