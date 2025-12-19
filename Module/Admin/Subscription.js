@@ -47,4 +47,11 @@ const SubscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Subscription", SubscriptionSchema);
+const Subscription = mongoose.model("Subscription", SubscriptionSchema);
+
+// Drop old index if exists (one-time cleanup)
+Subscription.collection.dropIndex("standard_1_subject_1").catch(() => {
+  // Index doesn't exist, ignore error
+});
+
+module.exports = Subscription;
