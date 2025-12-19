@@ -118,27 +118,26 @@ class UserSubscriptionController {
         console.log(`Sub ${i}: subclassName="${sub.subclassName}", exams:`, sub.examinations.map(e => `${e.examinationName}|${e.subjectName}`));
       });
 
-      // Search ALL subscriptions for matching class + exam + subject
+      // Search ALL subscriptions for matching exam + subject (class check is optional)
       let matchedSubscription = null;
       let matchedExamination = null;
 
+      // First try: Match class + exam + subject
       for (const sub of allUserSubs) {
-        // Check if class matches
         const classMatch = sub.subclassName === subclassName || 
                           sub.subclassName?.includes(subclassName) || 
                           subclassName?.includes(sub.subclassName);
         
         if (!classMatch) continue;
 
-        // Search for matching exam in this subscription
         const exam = sub.examinations.find((e) => {
           const examMatch = e.examinationName?.toLowerCase().trim() === examinationName?.toLowerCase().trim();
           const subjectMatch = !subjectName || 
                               !e.subjectName || 
                               e.subjectName?.toLowerCase().trim() === subjectName?.toLowerCase().trim();
           
-          console.log(`Comparing: "${e.examinationName}" vs "${examinationName}" = ${examMatch}`);
-          console.log(`Comparing: "${e.subjectName}" vs "${subjectName}" = ${subjectMatch}`);
+          console.log(`[Class Match] Comparing: "${e.examinationName}" vs "${examinationName}" = ${examMatch}`);
+          console.log(`[Class Match] Comparing: "${e.subjectName}" vs "${subjectName}" = ${subjectMatch}`);
           
           return examMatch && subjectMatch;
         });
@@ -150,21 +149,36 @@ class UserSubscriptionController {
         }
       }
 
+      // Second try: If no class match, search ALL subscriptions for just exam match
+      if (!matchedSubscription) {
+        console.log("No class+exam match found, searching all subscriptions for exam only...");
+        for (const sub of allUserSubs) {
+          const exam = sub.examinations.find((e) => {
+            const examMatch = e.examinationName?.toLowerCase().trim() === examinationName?.toLowerCase().trim();
+            const subjectMatch = !subjectName || 
+                                !e.subjectName || 
+                                e.subjectName?.toLowerCase().trim() === subjectName?.toLowerCase().trim();
+            
+            console.log(`[Any Sub] Comparing: "${e.examinationName}" vs "${examinationName}" = ${examMatch}`);
+            
+            return examMatch && subjectMatch;
+          });
+
+          if (exam) {
+            matchedSubscription = sub;
+            matchedExamination = exam;
+            console.log(`Found exam in different class subscription: ${sub.subclassName}`);
+            break;
+          }
+        }
+      }
+
       console.log("Found matching subscription:", matchedSubscription ? "Yes" : "No");
 
       if (!matchedSubscription || !matchedExamination) {
-        // Check if any subscription matches the class at least
-        const hasClassMatch = allUserSubs.some(sub => 
-          sub.subclassName === subclassName || 
-          sub.subclassName?.includes(subclassName) || 
-          subclassName?.includes(sub.subclassName)
-        );
-
         return res.status(200).json({
           hasSubscription: false,
-          message: hasClassMatch 
-            ? "This examination is not included in your subscription" 
-            : "No active subscription found for this class",
+          message: "This examination is not included in any of your subscriptions",
         });
       }
 
@@ -211,19 +225,18 @@ class UserSubscriptionController {
         return res.status(404).json({ error: "No active subscription found" });
       }
 
-      // Search ALL subscriptions for matching class + exam + subject
+      // Search ALL subscriptions for matching exam + subject
       let matchedSubscription = null;
       let matchedExamIndex = -1;
 
+      // First try: Match class + exam + subject
       for (const sub of allUserSubs) {
-        // Check if class matches
         const classMatch = sub.subclassName === subclassName || 
                           sub.subclassName?.includes(subclassName) || 
                           subclassName?.includes(sub.subclassName);
         
         if (!classMatch) continue;
 
-        // Search for matching exam in this subscription
         const examIndex = sub.examinations.findIndex((e) => {
           const examMatch = e.examinationName?.toLowerCase().trim() === examinationName?.toLowerCase().trim();
           const subjectMatch = !subjectName || 
@@ -236,6 +249,25 @@ class UserSubscriptionController {
           matchedSubscription = sub;
           matchedExamIndex = examIndex;
           break;
+        }
+      }
+
+      // Second try: If no class match, search ALL subscriptions for just exam match
+      if (!matchedSubscription) {
+        for (const sub of allUserSubs) {
+          const examIndex = sub.examinations.findIndex((e) => {
+            const examMatch = e.examinationName?.toLowerCase().trim() === examinationName?.toLowerCase().trim();
+            const subjectMatch = !subjectName || 
+                                !e.subjectName || 
+                                e.subjectName?.toLowerCase().trim() === subjectName?.toLowerCase().trim();
+            return examMatch && subjectMatch;
+          });
+
+          if (examIndex !== -1) {
+            matchedSubscription = sub;
+            matchedExamIndex = examIndex;
+            break;
+          }
         }
       }
 
