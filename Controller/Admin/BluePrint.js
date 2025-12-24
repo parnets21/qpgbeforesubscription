@@ -875,11 +875,30 @@ class BLUEPRINT {
       if (subjects) obj["subjects"] = subjects;
       if (ExameName) obj["ExameName"] = ExameName;
 
-      console.log(obj);
+      console.log("=== Blueprint Search ===");
+      console.log("Search criteria:", JSON.stringify(obj, null, 2));
 
       let data = await bluePrintModel.find(obj).sort({ _id: -1 });
-      if (data.length == 0)
+      console.log("Blueprints found:", data.length);
+      
+      if (data.length == 0) {
+        // Try a more relaxed search to help debug
+        let relaxedObj = { isBlock: true };
+        if (SubClassName) relaxedObj["SubClassName"] = SubClassName;
+        if (ExameName) relaxedObj["ExameName"] = ExameName;
+        
+        let relaxedData = await bluePrintModel.find(relaxedObj).sort({ _id: -1 });
+        console.log("Relaxed search (SubClassName + ExameName only):", relaxedData.length);
+        
+        if (relaxedData.length > 0) {
+          console.log("Available blueprints for this class/exam:");
+          relaxedData.forEach((bp, i) => {
+            console.log(`  ${i + 1}. Subject: "${bp.subjects}", Medium: "${bp.medium}"`);
+          });
+        }
+        
         return res.status(400).json({ error: "Coming Soon" });
+      }
       return res.status(200).json({ success: data });
     } catch (error) {
       console.log(error);
