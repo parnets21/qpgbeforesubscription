@@ -495,17 +495,50 @@ class BLUEPRINT {
   async getAllBLUEPRINTs(req, res) {
     try {
       const page = parseInt(req.query.page) || 1;
-      const limit = Math.min(parseInt(req.query.limit) || 50, 100); // Max 100 per page
+      const limit = Math.min(parseInt(req.query.limit) || 50, 100);
       const skip = (page - 1) * limit;
 
+      // Build filter object from query params
+      const filter = {};
+      const { board, medium, className, subClassName, subjects, exameName, search } = req.query;
+
+      console.log("=== getAllBLUEPRINTs Debug ===");
+      console.log("Query params received:", req.query);
+
+      if (board) filter.board = board;
+      if (medium) filter.medium = medium;
+      if (className) filter.className = className;
+      if (subClassName) filter.SubClassName = subClassName;
+      if (subjects) filter.subjects = subjects;
+      if (exameName) filter.ExameName = exameName;
+
+      console.log("Filter object:", JSON.stringify(filter));
+
+      // Text search across multiple fields
+      if (search) {
+        const regex = new RegExp(search, "i");
+        filter.$or = [
+          { blName: regex },
+          { board: regex },
+          { medium: regex },
+          { className: regex },
+          { SubClassName: regex },
+          { subjects: regex },
+          { ExameName: regex },
+        ];
+      }
+
       const [data, total] = await Promise.all([
-        bluePrintModel.find({})
+        bluePrintModel.find(filter)
           .sort({ _id: -1 })
           .skip(skip)
           .limit(limit)
-          .lean(), // Use lean() for better performance
-        bluePrintModel.countDocuments({})
+          .lean(),
+        bluePrintModel.countDocuments(filter)
       ]);
+
+      console.log("Total matching documents:", total);
+      console.log("Returning", data.length, "documents");
 
       return res.status(200).json({ 
         success: data,
