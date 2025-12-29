@@ -879,21 +879,52 @@ class BLUEPRINT {
       console.log("Search criteria:", JSON.stringify(obj, null, 2));
 
       let data = await bluePrintModel.find(obj).sort({ _id: -1 });
-      console.log("Blueprints found:", data.length);
+      console.log("Blueprints found with exact match:", data.length);
       
       if (data.length == 0) {
-        // Try a more relaxed search to help debug
+        // Try searching without subject to see if subject name is the issue
+        let withoutSubject = { isBlock: true };
+        if (board) withoutSubject["board"] = board;
+        if (medium) withoutSubject["medium"] = medium;
+        if (className) withoutSubject["className"] = className;
+        if (SubClassName) withoutSubject["SubClassName"] = SubClassName;
+        if (ExameName) withoutSubject["ExameName"] = ExameName;
+        
+        let dataWithoutSubject = await bluePrintModel.find(withoutSubject).sort({ _id: -1 });
+        console.log("Blueprints found WITHOUT subject filter:", dataWithoutSubject.length);
+        
+        if (dataWithoutSubject.length > 0) {
+          console.log("Available subjects for this combination:");
+          dataWithoutSubject.forEach((bp, i) => {
+            console.log(`  ${i + 1}. Subject in DB: "${bp.subjects}"`);
+            console.log(`      Subject requested: "${subjects}"`);
+            console.log(`      Match: ${bp.subjects === subjects}`);
+            console.log(`      Trimmed match: ${bp.subjects?.trim() === subjects?.trim()}`);
+          });
+          
+          // Try with trimmed subject
+          if (subjects) {
+            let trimmedData = dataWithoutSubject.filter(bp => 
+              bp.subjects?.trim().toLowerCase() === subjects?.trim().toLowerCase()
+            );
+            if (trimmedData.length > 0) {
+              console.log("Found match with trimmed/lowercase comparison!");
+              return res.status(200).json({ success: trimmedData });
+            }
+          }
+        }
+        
+        // Try a more relaxed search
         let relaxedObj = { isBlock: true };
         if (SubClassName) relaxedObj["SubClassName"] = SubClassName;
-        if (ExameName) relaxedObj["ExameName"] = ExameName;
         
         let relaxedData = await bluePrintModel.find(relaxedObj).sort({ _id: -1 });
-        console.log("Relaxed search (SubClassName + ExameName only):", relaxedData.length);
+        console.log("Relaxed search (SubClassName only):", relaxedData.length);
         
         if (relaxedData.length > 0) {
-          console.log("Available blueprints for this class/exam:");
+          console.log("All blueprints for this class:");
           relaxedData.forEach((bp, i) => {
-            console.log(`  ${i + 1}. Subject: "${bp.subjects}", Medium: "${bp.medium}"`);
+            console.log(`  ${i + 1}. Subject: "${bp.subjects}", ExameName: "${bp.ExameName}", Medium: "${bp.medium}"`);
           });
         }
         
