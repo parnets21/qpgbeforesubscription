@@ -494,10 +494,25 @@ class BLUEPRINT {
 
   async getAllBLUEPRINTs(req, res) {
     try {
+      console.log("=== getAllBLUEPRINTs API Called ===");
+      console.log("Request params:", req.params);
+      console.log("Auth user ID:", req.params.authId);
+      
       let data = await bluePrintModel.find({}).sort({ _id: -1 });
+      
+      console.log("Total blueprints found in DB:", data.length);
+      if (data.length > 0) {
+        console.log("Sample blueprints (first 3):");
+        data.slice(0, 3).forEach((bp, i) => {
+          console.log(`  ${i + 1}. Board: "${bp.board}", Medium: "${bp.medium}", Class: "${bp.className}", SubClass: "${bp.SubClassName}", Subject: "${bp.subjects}", Exam: "${bp.ExameName}"`);
+        });
+      } else {
+        console.log("WARNING: No blueprints found in database!");
+      }
+      
       return res.status(200).json({ success: data });
     } catch (error) {
-      console.log(error);
+      console.log("Error in getAllBLUEPRINTs:", error);
       return res.status(500).json({ error: "Internal server error" });
     }
   }
