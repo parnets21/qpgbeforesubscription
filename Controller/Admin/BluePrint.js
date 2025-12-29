@@ -502,7 +502,7 @@ class BLUEPRINT {
     }
   }
 
-  // NEW OPTIMIZED METHOD - Get filtered blueprints
+  
   async getFilteredBlueprints(req, res) {
     try {
       const { board, medium, className, subClassName, subjects, exameName } = req.params;
@@ -533,7 +533,7 @@ class BLUEPRINT {
     }
   }
 
-  // Alternative method using query parameters instead of URL params
+
   async getFilteredBlueprintsQuery(req, res) {
     try {
       const { board, medium, className, subClassName, subjects, exameName } = req.query;
@@ -550,7 +550,7 @@ class BLUEPRINT {
 
       console.log('Filter object:', filterObj);
 
-      // Find blueprints with applied filters
+    
       let data = await bluePrintModel.find(filterObj).sort({ _id: -1 });
       
       if (data.length === 0) {
@@ -564,7 +564,7 @@ class BLUEPRINT {
     }
   }
 
-  // Server-side pagination + filtering + search
+ 
   async getBlueprintsPaginated(req, res) {
     try {
       const {
@@ -605,7 +605,7 @@ class BLUEPRINT {
         }
       }
 
-      // Text search across selected fields
+    
       if (search) {
         const regex = new RegExp(search, "i");
         filter.$or = [

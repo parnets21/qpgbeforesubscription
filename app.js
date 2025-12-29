@@ -55,7 +55,22 @@ const Subscription = require("./Routes/Admin/Subscription");
 const UserSubscription = require("./Routes/Admin/UserSubscription");
 app.use(express.json());
 app.use(morgan("dev"));
-app.use(cors());
+
+// CORS configuration - allow frontend domains
+const corsOptions = {
+  origin: [
+    'https://parikshashikshak.com',
+    'https://www.parikshashikshak.com',
+    'https://parikshashikshak.in',
+    'https://www.parikshashikshak.in',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.static("Public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(helmet());
@@ -113,9 +128,6 @@ app.use("/api/admin/tut",Tutorial)
 //   return  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 // });
 
-app.use(
-  cors()
-);
 app.get("/", (req, res) => {
   res.send("Welcome to Guru Resource Management!");
 });
