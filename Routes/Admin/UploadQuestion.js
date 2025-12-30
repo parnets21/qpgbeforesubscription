@@ -24,6 +24,8 @@ const {
 router.post("/addUploadQuestions",upload.any(),Authentication, Authorization, addUploadQuestions);
 router.put("/updateUploadQuestions", Authentication, Authorization, updateUploadQuestions);
 router.get("/getAllpdf/:authId",Authentication, Authorization,getAllUploadQuestions);
+// Public endpoint for viewing PDFs (no authorization required, just authentication)
+router.get("/getAllpdfPublic",Authentication, getAllUploadQuestions);
 router.delete("/deleteuploadquestion/:id/:authId", Authentication,  Authorization, deletedUploadQuestionPdf);
 
 module.exports = router;
