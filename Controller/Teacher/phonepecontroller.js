@@ -8,8 +8,8 @@ require("dotenv").config();
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER, 
-    pass: process.env.EMAIL_PASS  
+     user: process.env.EMAIL_USER||"parikshashikshak@gmail.com",
+    pass: process.env.EMAIL_PASS||"uutlvptkcnwbfuof",
   },
 });
 
@@ -229,8 +229,8 @@ const sendReceipt = async (username, email, amount, transactionId) => {
       const transporter = nodemailer.createTransport({
         service: "gmail",
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
+          user: process.env.EMAIL_USER||"parikshashikshak@gmail.com",
+          pass: process.env.EMAIL_PASS||"uutlvptkcnwbfuof",
         },
       });
 

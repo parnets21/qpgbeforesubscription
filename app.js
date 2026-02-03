@@ -53,6 +53,7 @@ const RefferAndEarn = require("./Routes/Teacher/referralRoutes")
 const Tutorial = require("./Routes/Admin/TutorialRoutes");
 const Subscription = require("./Routes/Admin/Subscription");
 const UserSubscription = require("./Routes/Admin/UserSubscription");
+const DashboardOptimized = require("./Routes/Admin/DashboardOptimized");
 app.use(express.json());
 app.use(morgan("dev"));
 
@@ -117,6 +118,7 @@ app.use("/api/admin",UserSubscription)
 app.use("/api/admin",ResultSheetmanagementRoutes);   
 // app.use("/api/admin",Tutorial)
 app.use("/api/admin/tut",Tutorial)
+app.use("/api/admin/dashboard",DashboardOptimized)
 
 
 

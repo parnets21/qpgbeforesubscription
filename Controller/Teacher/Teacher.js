@@ -271,129 +271,7 @@ const saltRounds = 10;
 const { sendMail } = require('../../Authentication/SendEmail');
 
 class TEACHER {
-  // async registerTeacher(req, res) {
-  //   try {
-  //     let {
-  //       FirstName,
-  //       LastName,
-  //       Mobile,
-  //       Email,
-  //       Country,
-  //       State,
-  //       City,
-  //       Password,
-  //       whatsAppNumber,
-  //       CPassword,
-  //       termndcond,
-  //       referralCode // New field for referral
-  //     } = req.body;
 
-  //     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  //     const mobileRegex = /^[789]\d{9}$/;
-  //     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
-  //     // Validation
-  //     if (!(FirstName)) {
-  //       return res.status(400).json({ error: "Please enter first name" });
-  //     }
-  //     if (!(LastName)) {
-  //       return res.status(400).json({ error: "Please enter last name" });
-  //     }
-  //     if (!Mobile || !mobileRegex.test(Mobile)) {
-  //       return res.status(400).json({ error: "Please enter a valid mobile number" });
-  //     }
-  //     if (!whatsAppNumber || !mobileRegex.test(whatsAppNumber)) {
-  //       return res.status(400).json({ error: "Please enter whatsapp number" });
-  //     }
-  //     if (!Email || !emailRegex.test(Email)) {
-  //       return res.status(400).json({ error: "Please enter a valid email address" });
-  //     }
-  //     if (!Password) {
-  //       return res.status(400).json({ error: "Please enter a password" });
-  //     }
-  //     if (!passwordRegex.test(Password)) {
-  //       return res.status(400).json({ error: "Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long" });
-  //     }
-  //     if (Password !== CPassword) {
-  //       return res.status(400).json({ error: "Password not Match" });
-  //     }
-  //     if (!termndcond) {
-  //       return res.status(400).json({ error: "Accept, I agree the terms and conditions" });
-  //     }
-
-  //     // Check for existing records
-  //     let checkMobile = await teacherModel.findOne({ Mobile: Mobile });
-  //     if (checkMobile) {
-  //       return res.status(400).json({ error: `${Mobile} already exits` });
-  //     }
-  //     let checkWhats = await teacherModel.findOne({ whatsAppNumber: whatsAppNumber });
-  //     if (checkWhats) {
-  //       return res.status(400).json({ error: `${whatsAppNumber} already exits` });
-  //     }
-  //     let checkEmail = await teacherModel.findOne({ Email: Email });
-  //     if (checkEmail) {
-  //       return res.status(400).json({ error: `${Email} already exits` });
-  //     }
-
-  //     // Check referral code if provided
-  //     let referrerTeacher = null;
-  //     if (referralCode) {
-  //       referrerTeacher = await teacherModel.findOne({ teacherId: referralCode });
-  //       if (!referrerTeacher) {
-  //         return res.status(400).json({ error: "Invalid referral code" });
-  //       }
-  //       if (!referrerTeacher.isReferralActive) {
-  //         return res.status(400).json({ error: "Referral code is not active" });
-  //       }
-  //     }
-
-  //     Password = await bcrypt.hash(Password, 10);
-      
-  //     // Create teacher data object
-  //     let teacherData = {
-  //       FirstName,
-  //       LastName,
-  //       Mobile,
-  //       Email,
-  //       Country,
-  //       State,
-  //       City,
-  //       Password,
-  //       whatsAppNumber
-  //     };
-
-  //     // Add referral information if referral code was provided
-  //     if (referrerTeacher) {
-  //       teacherData.referredBy = referralCode;
-  //       teacherData.referredByTeacher = referrerTeacher._id;
-  //     }
-
-  //     let data = await teacherModel.create(teacherData);
-  //     if (!data) return res.status(400).json({ error: "Something went wrong" });
-
-  //     // If referred by someone, add referral to referrer's account
-  //     if (referrerTeacher) {
-  //       await referrerTeacher.addReferral(data._id);
-        
-  //       // Send notification email to referrer
-  //       sendMail(
-  //         referrerTeacher.FirstName, 
-  //         referrerTeacher.Email, 
-  //         `Congratulations! ${FirstName} ${LastName} has joined using your referral code.`
-  //       );
-  //     }
-
-  //     return res.status(200).json({ 
-  //       success: "Successfully Registered",
-  //       teacherId: data.teacherId,
-  //       referralCode: data.referralCode
-  //     });
-  //   } catch (error) {
-  //     console.log(error);
-  //     return res.status(500).json({ error: "Internal server error" });
-  //   }
-  // }
-   
    async registerTeacher(req, res) {
     try {
       let {
@@ -718,78 +596,7 @@ async confirmReferral(req, res) {
     }
   }
 
-  // async updateTeacher(req, res) {
-  //   try {
-  //     let {
-  //       id,
-  //       FirstName,
-  //       LastName,
-  //       Mobile,
-  //       Email,
-  //       Country,
-  //       State,
-  //       City,
-  //       Password,
-  //       whatsAppNumber,
-  //       isReferralActive
-  //     } = req.body;
-      
-  //     let obj = {};
-  //     if (whatsAppNumber) {
-  //       obj["whatsAppNumber"] = whatsAppNumber
-  //     }
-  //     if (FirstName) {
-  //       obj["FirstName"] = FirstName;
-  //     }
-  //     if (LastName) {
-  //       obj["LastName"] = LastName;
-  //     }
-  //     if (Mobile) {
-  //       let checkMobile = await teacherModel.findOne({ Mobile: Mobile, _id: { $ne: id } });
-  //       if (checkMobile)
-  //         return res.status(400).json({ error: `${Mobile} already exits` });
-  //       obj["Mobile"] = Mobile;
-  //     }
-  //     if (Email) {
-  //       let checkEmail = await teacherModel.findOne({ Email: Email, _id: { $ne: id } });
-  //       if (checkEmail)
-  //         return res.status(400).json({ error: `${Email} already exits` });
-  //       obj["Email"] = Email;
-  //     }
-  //     if (Country) {
-  //       obj["Country"] = Country;
-  //     }
-  //     if (State) {
-  //       obj["State"] = State;
-  //     }
-  //     if (City) {
-  //       obj["City"] = City;
-  //     }
-  //     if (Password) {
-  //       obj["Password"] = await bcrypt.hash(Password, 10);
-  //     }
-  //     if (typeof isReferralActive === 'boolean') {
-  //       obj["isReferralActive"] = isReferralActive;
-  //     }
-      
-  //     if (req.files && req.files.length != 0) {
-  //       let arr = req.files
-  //       let i
-  //       for (i = 0; i < arr.length; i++) {
-  //         if (arr[i].fieldname == "Profile") {
-  //           obj["Profile"] = await uploadfile2(arr[i],"Profile")
-  //         }
-  //       }
-  //     }
-      
-  //     let data = await teacherModel.findOneAndUpdate({ _id: id }, { $set: obj }, { new: true });
-  //     if (!data) return res.status(400).json({ error: "Data not found" });
-  //     return res.status(200).json({ success: data, msg: "Successfully Updated" })
-  //   } catch (error) {
-  //     console.log(error);
-  //     return res.status(500).json({ error: "Internal server error" });
-  //   }
-  // } 
+ 
    
   async updateTeacher(req, res) {
   try {
@@ -807,8 +614,7 @@ async confirmReferral(req, res) {
       isReferralActive,
       bankDetails
     } = req.body;
-    
-    // Validate the incoming data
+  
     if (!id) {
       return res.status(400).json({ error: "Teacher ID is required" });
     }
