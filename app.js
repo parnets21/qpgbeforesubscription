@@ -54,7 +54,9 @@ const Tutorial = require("./Routes/Admin/TutorialRoutes");
 const Subscription = require("./Routes/Admin/Subscription");
 const UserSubscription = require("./Routes/Admin/UserSubscription");
 const DashboardOptimized = require("./Routes/Admin/DashboardOptimized");
-app.use(express.json());
+const ResultMaker = require("./Routes/ResultMakerRoutes");
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '500mb', extended: true }));
 app.use(morgan("dev"));
 
 // CORS configuration - allow frontend domains
@@ -119,6 +121,7 @@ app.use("/api/admin",ResultSheetmanagementRoutes);
 // app.use("/api/admin",Tutorial)
 app.use("/api/admin/tut",Tutorial)
 app.use("/api/admin/dashboard",DashboardOptimized)
+app.use("/api/resultmaker", ResultMaker);
 
 
 
