@@ -9,6 +9,7 @@ const TermController = require('../Controller/ResultMaker/TermController');
 const AssessmentTypeController = require('../Controller/ResultMaker/AssessmentTypeController');
 const SubjectController = require('../Controller/ResultMaker/SubjectController');
 const MarksController = require('../Controller/ResultMaker/MarksController');
+const ExamSettingsController = require('../Controller/ResultMaker/ExamSettingsController');
 
 // School Routes
 router.post('/school/save', Authentication, SchoolController.saveSchoolProfile);
@@ -46,5 +47,11 @@ router.post('/marks/save', Authentication, MarksController.saveMarks);
 router.get('/marks/get', Authentication, MarksController.getMarks);
 router.get('/marks/student/:studentId', Authentication, MarksController.getStudentMarks);
 router.delete('/marks/:marksId', Authentication, MarksController.deleteMarks);
+
+// Exam Settings Routes
+router.post('/exam-settings/save', Authentication, ExamSettingsController.saveExamSettings);
+router.get('/exam-settings/:classId', Authentication, ExamSettingsController.getExamSettings);
+router.get('/exam-settings/all', Authentication, ExamSettingsController.getAllExamSettings);
+router.delete('/exam-settings/:classId', Authentication, ExamSettingsController.deleteExamSettings);
 
 module.exports = router;

@@ -37,10 +37,16 @@ const schoolSchema = new mongoose.Schema({
     type: String,
     default: '2025-2026'
   },
+  schoolCode: {
+    type: String,
+    default: null,
+    sparse: true  // Allows multiple null values
+  },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Teacher',
-    required: true
+    required: true,
+    
   },
   createdAt: {
     type: Date,

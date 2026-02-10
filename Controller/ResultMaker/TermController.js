@@ -1,4 +1,5 @@
 const Term = require('../../Module/ResultMaker/Term');
+const mongoose = require('mongoose');
 
 // Add Term
 exports.addTerm = async (req, res) => {
@@ -10,6 +11,14 @@ exports.addTerm = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Class ID is required'
+      });
+    }
+
+    // Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(classId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Class ID format'
       });
     }
 
@@ -47,6 +56,13 @@ exports.getAllTerms = async (req, res) => {
 
     const query = { userId };
     if (classId) {
+      // Validate ObjectId
+      if (!mongoose.Types.ObjectId.isValid(classId)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid Class ID format. Please create classes through the API.'
+        });
+      }
       query.classId = classId;
     }
 
