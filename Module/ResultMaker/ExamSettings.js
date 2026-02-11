@@ -17,10 +17,28 @@ const examSettingsSchema = new mongoose.Schema({
     required: true
   },
   
+  // MA / Multiple Assessment
+  maAssessment: {
+    enabled: { type: Boolean, default: false },
+    marks: { type: Number, default: 5 }
+  },
+  
+  // Notebook Submission
+  notebookSubmission: {
+    enabled: { type: Boolean, default: false },
+    marks: { type: Number, default: 5 }
+  },
+  
+  // Subject Enrichment / Project
+  subjectEnrichment: {
+    enabled: { type: Boolean, default: false },
+    marks: { type: Number, default: 5 }
+  },
+  
   // PA Weightage
   paWeightage: {
     enabled: { type: Boolean, default: false },
-    marks: { type: Number, default: 20 }
+    marks: { type: Number, default: 10 }
   },
   
   // Term 1 - FA/SA Settings
@@ -31,9 +49,27 @@ const examSettingsSchema = new mongoose.Schema({
       default: null
     },
     termName: { type: String, default: 'Term 1' },
+    numberOfPAs: { type: Number, default: 1, min: 1, max: 3 },
     fa1MaxMarks: { type: Number, default: 0 },
     fa2MaxMarks: { type: Number, default: 0 },
-    sa1MaxMarks: { type: Number, default: 0 }
+    sa1MaxMarks: { type: Number, default: 0 },
+    // Assessment types for Term 1
+    maAssessment: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 5 }
+    },
+    notebookSubmission: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 5 }
+    },
+    subjectEnrichment: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 5 }
+    },
+    paWeightage: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 10 }
+    }
   },
   
   // Term 2 - FA/SA Settings
@@ -44,9 +80,27 @@ const examSettingsSchema = new mongoose.Schema({
       default: null
     },
     termName: { type: String, default: 'Term 2' },
+    numberOfPAs: { type: Number, default: 1, min: 1, max: 3 },
     fa3MaxMarks: { type: Number, default: 0 },
     fa4MaxMarks: { type: Number, default: 0 },
-    sa2MaxMarks: { type: Number, default: 0 }
+    sa2MaxMarks: { type: Number, default: 0 },
+    // Assessment types for Term 2
+    maAssessment: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 5 }
+    },
+    notebookSubmission: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 5 }
+    },
+    subjectEnrichment: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 5 }
+    },
+    paWeightage: {
+      enabled: { type: Boolean, default: false },
+      marks: { type: Number, default: 10 }
+    }
   },
   
   // Calculation Method

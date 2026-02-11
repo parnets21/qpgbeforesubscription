@@ -8,6 +8,9 @@ exports.saveExamSettings = async (req, res) => {
   try {
     const {
       classId,
+      maAssessment,
+      notebookSubmission,
+      subjectEnrichment,
       paWeightage,
       term1,
       term2,
@@ -16,6 +19,14 @@ exports.saveExamSettings = async (req, res) => {
       mainSubjects,
       additionalSubjects
     } = req.body;
+
+    console.log('Received exam settings save request');
+    console.log('Assessment types received:', {
+      maAssessment,
+      notebookSubmission,
+      subjectEnrichment,
+      paWeightage
+    });
 
     const userId = req.user._id;
 
@@ -61,14 +72,17 @@ exports.saveExamSettings = async (req, res) => {
     let examSettings = await ExamSettings.findOne({ classId });
 
     if (examSettings) {
-      // Update existing settings
-      examSettings.paWeightage = paWeightage || examSettings.paWeightage;
-      examSettings.term1 = cleanedTerm1 || examSettings.term1;
-      examSettings.term2 = cleanedTerm2 || examSettings.term2;
-      examSettings.calculationMethod = calculationMethod || examSettings.calculationMethod;
-      examSettings.coScholastic = coScholastic || examSettings.coScholastic;
-      examSettings.mainSubjects = mainSubjects || examSettings.mainSubjects;
-      examSettings.additionalSubjects = additionalSubjects || examSettings.additionalSubjects;
+      // Update existing settings - use direct assignment instead of || to handle false values
+      if (maAssessment !== undefined) examSettings.maAssessment = maAssessment;
+      if (notebookSubmission !== undefined) examSettings.notebookSubmission = notebookSubmission;
+      if (subjectEnrichment !== undefined) examSettings.subjectEnrichment = subjectEnrichment;
+      if (paWeightage !== undefined) examSettings.paWeightage = paWeightage;
+      if (cleanedTerm1 !== undefined) examSettings.term1 = cleanedTerm1;
+      if (cleanedTerm2 !== undefined) examSettings.term2 = cleanedTerm2;
+      if (calculationMethod !== undefined) examSettings.calculationMethod = calculationMethod;
+      if (coScholastic !== undefined) examSettings.coScholastic = coScholastic;
+      if (mainSubjects !== undefined) examSettings.mainSubjects = mainSubjects;
+      if (additionalSubjects !== undefined) examSettings.additionalSubjects = additionalSubjects;
       examSettings.updatedAt = Date.now();
 
       await examSettings.save();
@@ -84,6 +98,9 @@ exports.saveExamSettings = async (req, res) => {
         classId,
         schoolId: school._id,
         userId,
+        maAssessment,
+        notebookSubmission,
+        subjectEnrichment,
         paWeightage,
         term1: cleanedTerm1,
         term2: cleanedTerm2,
@@ -126,6 +143,14 @@ exports.getExamSettings = async (req, res) => {
     const examSettings = await ExamSettings.findOne({ classId, userId })
       .populate('term1.termId', 'termName')
       .populate('term2.termId', 'termName');
+
+    console.log('Fetched exam settings:', examSettings);
+    console.log('Assessment types in response:', {
+      maAssessment: examSettings?.maAssessment,
+      notebookSubmission: examSettings?.notebookSubmission,
+      subjectEnrichment: examSettings?.subjectEnrichment,
+      paWeightage: examSettings?.paWeightage
+    });
 
     if (!examSettings) {
       return res.status(404).json({
