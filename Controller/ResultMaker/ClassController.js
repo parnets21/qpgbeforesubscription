@@ -114,3 +114,57 @@ exports.deleteClass = async (req, res) => {
     });
   }
 };
+
+// Update Class
+exports.updateClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { className, section } = req.body;
+    const userId = req.user._id;
+
+    const classData = await Class.findOne({ _id: classId, userId });
+
+    if (!classData) {
+      return res.status(404).json({
+        success: false,
+        message: 'Class not found'
+      });
+    }
+
+    // Check if another class with same name and section exists
+    if (className || section) {
+      const existingClass = await Class.findOne({
+        _id: { $ne: classId },
+        className: className || classData.className,
+        section: section || classData.section,
+        schoolId: classData.schoolId
+      });
+
+      if (existingClass) {
+        return res.status(400).json({
+          success: false,
+          message: 'Class with this name and section already exists'
+        });
+      }
+    }
+
+    // Update class
+    if (className) classData.className = className;
+    if (section) classData.section = section;
+
+    await classData.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Class updated successfully',
+      data: classData
+    });
+  } catch (error) {
+    console.error('Error updating class:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error updating class',
+      error: error.message
+    });
+  }
+};

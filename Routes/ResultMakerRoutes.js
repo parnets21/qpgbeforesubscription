@@ -11,14 +11,18 @@ const SubjectController = require('../Controller/ResultMaker/SubjectController')
 const MarksController = require('../Controller/ResultMaker/MarksController');
 const ExamSettingsController = require('../Controller/ResultMaker/ExamSettingsController');
 const AdmitCardController = require('../Controller/ResultMaker/AdmitCardController');
+const LBAController = require('../Controller/ResultMaker/LBAController');
+const LBASettingsController = require('../Controller/ResultMaker/LBASettingsController');
 
 // School Routes
 router.post('/school/save', Authentication, SchoolController.saveSchoolProfile);
 router.get('/school/profile', Authentication, SchoolController.getSchoolProfile);
+router.get('/school/all', Authentication, SchoolController.getAllSchoolProfiles);
 
 // Class Routes
 router.post('/class/add', Authentication, ClassController.addClass);
 router.get('/class/all', Authentication, ClassController.getAllClasses);
+router.put('/class/:classId', Authentication, ClassController.updateClass);
 router.delete('/class/:classId', Authentication, ClassController.deleteClass);
 
 // Student Routes
@@ -31,16 +35,19 @@ router.delete('/student/:studentId', Authentication, StudentController.deleteStu
 // Term Routes
 router.post('/term/add', Authentication, TermController.addTerm);
 router.get('/term/all', Authentication, TermController.getAllTerms);
+router.put('/term/:termId', Authentication, TermController.updateTerm);
 router.delete('/term/:termId', Authentication, TermController.deleteTerm);
 
 // Assessment Type Routes
 router.post('/assessment/add', Authentication, AssessmentTypeController.addAssessmentType);
 router.get('/assessment/all', Authentication, AssessmentTypeController.getAllAssessmentTypes);
+router.put('/assessment/:assessmentId', Authentication, AssessmentTypeController.updateAssessmentType);
 router.delete('/assessment/:assessmentId', Authentication, AssessmentTypeController.deleteAssessmentType);
 
 // Subject Routes
 router.post('/subject/add', Authentication, SubjectController.addSubject);
 router.get('/subject/all', Authentication, SubjectController.getAllSubjects);
+router.put('/subject/:subjectId', Authentication, SubjectController.updateSubject);
 router.delete('/subject/:subjectId', Authentication, SubjectController.deleteSubject);
 
 // Marks Routes
@@ -61,5 +68,24 @@ router.get('/admit-card/all', Authentication, AdmitCardController.getAllAdmitCar
 router.get('/admit-card/:id', Authentication, AdmitCardController.getAdmitCardById);
 router.put('/admit-card/:id', Authentication, AdmitCardController.updateAdmitCard);
 router.delete('/admit-card/:id', Authentication, AdmitCardController.deleteAdmitCard);
+
+// LBA (Lesson Based Assessment) Routes
+// Chapter Management
+router.post('/lba/chapter/add', Authentication, LBAController.addChapter);
+router.get('/lba/chapter/all', Authentication, LBAController.getAllChapters);
+router.put('/lba/chapter/:chapterId', Authentication, LBAController.updateChapter);
+router.delete('/lba/chapter/:chapterId', Authentication, LBAController.deleteChapter);
+
+// Marks Management
+router.post('/lba/marks/save', Authentication, LBAController.saveMarks);
+router.get('/lba/marks/get', Authentication, LBAController.getMarks);
+
+// Reports
+router.get('/lba/report/student', Authentication, LBAController.getStudentReport);
+
+// LBA Settings
+router.post('/lba/settings/save', Authentication, LBASettingsController.saveLBASettings);
+router.get('/lba/settings/:classId', Authentication, LBASettingsController.getLBASettings);
+router.get('/lba/settings/all', Authentication, LBASettingsController.getAllLBASettings);
 
 module.exports = router;

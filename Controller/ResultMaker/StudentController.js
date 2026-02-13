@@ -5,7 +5,7 @@ const School = require('../../Module/ResultMaker/School');
 // Add Student
 exports.addStudent = async (req, res) => {
   try {
-    const { admissionNo, className, studentName, fatherName, motherName, mobileNo } = req.body;
+    const { admissionNo, className, studentName, fatherName, motherName, mobileNo, dateOfBirth, gender } = req.body;
     const userId = req.user._id;
 
     // Get school for this user
@@ -53,6 +53,8 @@ exports.addStudent = async (req, res) => {
       fatherName,
       motherName,
       mobileNo,
+      dateOfBirth: dateOfBirth || undefined,
+      gender: gender || undefined,
       classId: classData._id,
       schoolId: school._id,
       userId
@@ -138,7 +140,7 @@ exports.getAllStudents = async (req, res) => {
 exports.updateStudent = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { admissionNo, studentName, fatherName, motherName, mobileNo } = req.body;
+    const { admissionNo, studentName, fatherName, motherName, mobileNo, dateOfBirth, gender } = req.body;
     const userId = req.user._id;
 
     const student = await Student.findOne({ _id: studentId, userId });
@@ -155,6 +157,8 @@ exports.updateStudent = async (req, res) => {
     student.fatherName = fatherName;
     student.motherName = motherName;
     student.mobileNo = mobileNo;
+    if (dateOfBirth) student.dateOfBirth = dateOfBirth;
+    if (gender) student.gender = gender;
     student.updatedAt = Date.now();
 
     await student.save();

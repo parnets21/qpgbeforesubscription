@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const termSchema = new mongoose.Schema({
+const lbaChapterSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Teacher',
@@ -16,14 +16,22 @@ const termSchema = new mongoose.Schema({
     ref: 'Class',
     required: true
   },
-  termName: {
+  term: {
     type: String,
     required: true,
-    trim: true
+    enum: ['Term 1', 'Term 2']
   },
-  isActive: {
-    type: Boolean,
-    default: true
+  subject: {
+    type: String,
+    required: true
+  },
+  chapterName: {
+    type: String,
+    required: true
+  },
+  chapterNumber: {
+    type: Number,
+    required: true
   },
   createdAt: {
     type: Date,
@@ -35,7 +43,7 @@ const termSchema = new mongoose.Schema({
   }
 });
 
-// Create unique index to ensure unique term names per user per class
-termSchema.index({ userId: 1, classId: 1, termName: 1 }, { unique: true });
+// Create compound index to ensure unique chapters per subject/term/class
+lbaChapterSchema.index({ classId: 1, term: 1, subject: 1, chapterNumber: 1 }, { unique: true });
 
-module.exports = mongoose.model('Term', termSchema);
+module.exports = mongoose.model('LBAChapter', lbaChapterSchema);

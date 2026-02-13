@@ -95,3 +95,58 @@ exports.deleteSubject = async (req, res) => {
     });
   }
 };
+
+// Update Subject
+exports.updateSubject = async (req, res) => {
+  try {
+    const { subjectId } = req.params;
+    const { subjectName } = req.body;
+    const userId = req.user._id;
+
+    if (!subjectName || !subjectName.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject name is required'
+      });
+    }
+
+    const subject = await ResultMakerSubject.findOne({ _id: subjectId, userId });
+    if (!subject) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subject not found'
+      });
+    }
+
+    // Check if new name already exists for this class
+    const existing = await ResultMakerSubject.findOne({
+      subjectName: subjectName.trim(),
+      classId: subject.classId,
+      userId,
+      _id: { $ne: subjectId }
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'Subject name already exists for this class'
+      });
+    }
+
+    subject.subjectName = subjectName.trim();
+    await subject.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Subject updated successfully',
+      data: subject
+    });
+  } catch (error) {
+    console.error('Error updating subject:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error updating subject',
+      error: error.message
+    });
+  }
+};
