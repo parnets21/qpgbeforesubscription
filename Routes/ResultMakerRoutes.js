@@ -13,6 +13,10 @@ const ExamSettingsController = require('../Controller/ResultMaker/ExamSettingsCo
 const AdmitCardController = require('../Controller/ResultMaker/AdmitCardController');
 const LBAController = require('../Controller/ResultMaker/LBAController');
 const LBASettingsController = require('../Controller/ResultMaker/LBASettingsController');
+const ResultCalculationController = require('../Controller/ResultMaker/ResultCalculationController');
+const StudentMarksController = require('../Controller/ResultMaker/StudentMarksController');
+const ResultGenerationController = require('../Controller/ResultMaker/ResultGenerationController');
+const GradingSettingsController = require('../Controller/ResultMaker/GradingSettingsController');
 
 // School Routes
 router.post('/school/save', Authentication, SchoolController.saveSchoolProfile);
@@ -87,5 +91,21 @@ router.get('/lba/report/student', Authentication, LBAController.getStudentReport
 router.post('/lba/settings/save', Authentication, LBASettingsController.saveLBASettings);
 router.get('/lba/settings/:classId', Authentication, LBASettingsController.getLBASettings);
 router.get('/lba/settings/all', Authentication, LBASettingsController.getAllLBASettings);
+
+// Result Calculation Settings Routes
+router.post('/result-settings/save', Authentication, ResultCalculationController.saveResultCalculationSettings);
+router.get('/result-settings/:classId', Authentication, ResultCalculationController.getResultCalculationSettings);
+
+// Student Marks Routes (New System) - Different paths to avoid conflict
+router.post('/student-marks/save', Authentication, StudentMarksController.saveStudentMarks);
+router.get('/student-marks/get', Authentication, StudentMarksController.getStudentMarks);
+
+// Result Generation Routes
+router.post('/results/calculate', Authentication, ResultGenerationController.calculateStudentResults);
+
+// Grading Settings Routes
+router.post('/grading-settings/save', Authentication, GradingSettingsController.saveGradingSettings);
+router.get('/grading-settings/get', Authentication, GradingSettingsController.getGradingSettings);
+router.delete('/grading-settings/:id', Authentication, GradingSettingsController.deleteGradingSettings);
 
 module.exports = router;

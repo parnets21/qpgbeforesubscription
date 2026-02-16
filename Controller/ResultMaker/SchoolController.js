@@ -7,7 +7,8 @@ exports.saveSchoolProfile = async (req, res) => {
       schoolId, // Add schoolId to identify which school to update
       schoolLogo,
       principalSignature,
-      schoolName, 
+      schoolName,
+      schoolCode, // Add schoolCode
       schoolAddress, 
       mobileNumber, 
       affiliationNumber, 
@@ -15,6 +16,8 @@ exports.saveSchoolProfile = async (req, res) => {
       schoolWebsite, 
       selectedSession 
     } = req.body;
+
+    console.log('Received school profile data:', req.body);
 
     const userId = req.user._id; // Assuming auth middleware sets req.user
 
@@ -35,6 +38,7 @@ exports.saveSchoolProfile = async (req, res) => {
       school.schoolLogo = schoolLogo !== undefined ? schoolLogo : school.schoolLogo;
       school.principalSignature = principalSignature !== undefined ? principalSignature : school.principalSignature;
       school.schoolName = schoolName;
+      school.schoolCode = schoolCode !== undefined ? schoolCode : school.schoolCode; // Add schoolCode
       school.schoolAddress = schoolAddress;
       school.mobileNumber = mobileNumber;
       school.affiliationNumber = affiliationNumber;
@@ -44,6 +48,8 @@ exports.saveSchoolProfile = async (req, res) => {
       school.updatedAt = Date.now();
 
       await school.save();
+
+      console.log('School profile updated:', school);
 
       return res.status(200).json({
         success: true,
@@ -60,6 +66,7 @@ exports.saveSchoolProfile = async (req, res) => {
       school.schoolLogo = schoolLogo || school.schoolLogo;
       school.principalSignature = principalSignature !== undefined ? principalSignature : school.principalSignature;
       school.schoolName = schoolName;
+      school.schoolCode = schoolCode !== undefined ? schoolCode : school.schoolCode; // Add schoolCode
       school.schoolAddress = schoolAddress;
       school.mobileNumber = mobileNumber;
       school.affiliationNumber = affiliationNumber;
@@ -81,6 +88,7 @@ exports.saveSchoolProfile = async (req, res) => {
         schoolLogo,
         principalSignature,
         schoolName,
+        schoolCode, // Add schoolCode
         schoolAddress,
         mobileNumber,
         affiliationNumber,

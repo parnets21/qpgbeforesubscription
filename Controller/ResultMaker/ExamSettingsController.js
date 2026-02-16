@@ -8,25 +8,16 @@ exports.saveExamSettings = async (req, res) => {
   try {
     const {
       classId,
-      maAssessment,
-      notebookSubmission,
-      subjectEnrichment,
-      paWeightage,
-      term1,
-      term2,
       calculationMethod,
-      coScholastic,
       mainSubjects,
-      additionalSubjects
+      additionalSubjects,
+      termSettings,
+      subjectMaxMarks
     } = req.body;
 
     console.log('Received exam settings save request');
-    console.log('Assessment types received:', {
-      maAssessment,
-      notebookSubmission,
-      subjectEnrichment,
-      paWeightage
-    });
+    console.log('Term settings received:', termSettings);
+    console.log('Subject max marks received:', subjectMaxMarks);
 
     const userId = req.user._id;
 
@@ -37,18 +28,6 @@ exports.saveExamSettings = async (req, res) => {
         message: 'Class ID is required'
       });
     }
-
-    // Helper function to clean termId (convert empty string to null)
-    const cleanTermData = (termData) => {
-      if (termData && termData.termId === '') {
-        return { ...termData, termId: null };
-      }
-      return termData;
-    };
-
-    // Clean term data
-    const cleanedTerm1 = cleanTermData(term1);
-    const cleanedTerm2 = cleanTermData(term2);
 
     // Get school for this user
     const school = await School.findOne({ userId });
@@ -72,17 +51,12 @@ exports.saveExamSettings = async (req, res) => {
     let examSettings = await ExamSettings.findOne({ classId });
 
     if (examSettings) {
-      // Update existing settings - use direct assignment instead of || to handle false values
-      if (maAssessment !== undefined) examSettings.maAssessment = maAssessment;
-      if (notebookSubmission !== undefined) examSettings.notebookSubmission = notebookSubmission;
-      if (subjectEnrichment !== undefined) examSettings.subjectEnrichment = subjectEnrichment;
-      if (paWeightage !== undefined) examSettings.paWeightage = paWeightage;
-      if (cleanedTerm1 !== undefined) examSettings.term1 = cleanedTerm1;
-      if (cleanedTerm2 !== undefined) examSettings.term2 = cleanedTerm2;
+      // Update existing settings
       if (calculationMethod !== undefined) examSettings.calculationMethod = calculationMethod;
-      if (coScholastic !== undefined) examSettings.coScholastic = coScholastic;
       if (mainSubjects !== undefined) examSettings.mainSubjects = mainSubjects;
       if (additionalSubjects !== undefined) examSettings.additionalSubjects = additionalSubjects;
+      if (termSettings !== undefined) examSettings.termSettings = termSettings;
+      if (subjectMaxMarks !== undefined) examSettings.subjectMaxMarks = subjectMaxMarks;
       examSettings.updatedAt = Date.now();
 
       await examSettings.save();
@@ -98,16 +72,11 @@ exports.saveExamSettings = async (req, res) => {
         classId,
         schoolId: school._id,
         userId,
-        maAssessment,
-        notebookSubmission,
-        subjectEnrichment,
-        paWeightage,
-        term1: cleanedTerm1,
-        term2: cleanedTerm2,
         calculationMethod,
-        coScholastic,
         mainSubjects,
-        additionalSubjects
+        additionalSubjects,
+        termSettings,
+        subjectMaxMarks
       });
 
       await examSettings.save();
@@ -140,17 +109,9 @@ exports.getExamSettings = async (req, res) => {
       });
     }
 
-    const examSettings = await ExamSettings.findOne({ classId, userId })
-      .populate('term1.termId', 'termName')
-      .populate('term2.termId', 'termName');
+    const examSettings = await ExamSettings.findOne({ classId, userId });
 
     console.log('Fetched exam settings:', examSettings);
-    console.log('Assessment types in response:', {
-      maAssessment: examSettings?.maAssessment,
-      notebookSubmission: examSettings?.notebookSubmission,
-      subjectEnrichment: examSettings?.subjectEnrichment,
-      paWeightage: examSettings?.paWeightage
-    });
 
     if (!examSettings) {
       return res.status(404).json({
@@ -179,8 +140,6 @@ exports.getAllExamSettings = async (req, res) => {
 
     const examSettings = await ExamSettings.find({ userId })
       .populate('classId', 'className section')
-      .populate('term1.termId', 'termName')
-      .populate('term2.termId', 'termName')
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
