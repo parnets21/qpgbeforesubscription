@@ -22,6 +22,19 @@ if(currentIndex<=count){
   return array?.slice(0,count)
 }
 
+// Helper function to map BluePrintQuestiontype to database Types_Question
+function mapBlueprintTypeToDBType(blueprintType, marks) {
+  // Map based on BluePrintQuestiontype and marks
+  const typeMap = {
+    'O T': ['Multiple Choice Questions', 'Fill in the Blanks Questions'], // Objective Type
+    'S.A': ['One Sentence Answer Question', 'Two and three Sentence Answer Questions', 'Three and Four Sentence Answer Questions'], // Short Answer
+    'L.A 1': ['Five and Six Sentence Answer Questions', 'Seven Sentence Answer Questions', 'Ten Sentence Answer Questions'] // Long Answer
+  };
+  
+  // Return mapped types or empty array if not found
+  return typeMap[blueprintType] || [];
+}
+
 class QUESTION {
   async AddQuestionPaper(req, res) {
     try {
@@ -1297,61 +1310,147 @@ async getFilterOptions(req, res) {
 
   async getQuestionByClasswise(req, res) {
     try {
-      let { Board, Medium, Class, Sub_Class, Subject ,ExamName,AllChapter,QusetionType,Weightageofthecontent} = req.body;
-
-  let ChapterData=  [...new Set(AllChapter?.map((ele)=>ele?.Blueprintchapter))];
-  let ObjectiveData= [...new Set(AllChapter?.map((ele)=>ele?.Blueprintobjective))];
-  let QueationTypeA= [...new Set(QusetionType?.map((ele)=>ele?.QAType))];
-  let label= [...new Set(Weightageofthecontent?.map((ele)=>ele?.label))];
-  // let am=state?.bluePrint?.AllChapter?.filter((ele)=> ele?.Blueprintobjective == data)?.reduce(
-  //   (a, ele) => a + Number(ele?.Blueprintnoofquestion),
-  //   0
-  // )
-    // Construct regex patterns for chapter and objective
-    const chapterRegex = ChapterData ? new RegExp(ChapterData.join("|"), "i") : /.*/;
-    const objectiveRegex = ObjectiveData ? new RegExp(ObjectiveData.join("|"), "i") : /.*/;
-    const QA = QueationTypeA ? new RegExp(QueationTypeA.join("|"), "i") : /.*/;
-    let lesson=label ? new RegExp(label.join("|"), "i") : /.*/;
-  
-// console.log("data check==>",ObjectiveData,ChapterData);
-
-      let allQuestions = await QuestionPaperModel.find({
+      let { Board, Medium, Class, Sub_Class, Subject, ExamName, AllChapter, QusetionType, Weightageofthecontent } = req.body;
+      
+      console.log("=== Request Data ===");
+      
+      
+      // Extract unique values and filter out null/undefined
+      let ChapterData = [...new Set(AllChapter?.map((ele) => ele?.Blueprintchapter))].filter(Boolean);
+      let ObjectiveData = [...new Set(AllChapter?.map((ele) => ele?.Blueprintobjective))].filter(Boolean);
+      let QueationTypeA = [...new Set(QusetionType?.map((ele) => ele?.QAType))].filter(Boolean);
+      let label = [...new Set(Weightageofthecontent?.map((ele) => ele?.label))].filter(Boolean);
+      
+      
+      
+      // Build query with proper AND conditions
+      let query = {
         Board: Board,
         Medium: Medium,
         Class: Class,
         Sub_Class: Sub_Class,
-        Subject: Subject,
-    
-        // "Name_of_examination.NameExamination": { $in: ExamName } ,
-        $or: [
-          { "Chapter_Name": { $regex: chapterRegex } }, // Assuming the field name for chapter is "chapterField"
-          { "Objectives": { $regex: objectiveRegex } }, // Assuming the field name for objective is "objectiveField"
-          {"Types_Question":{ $regex: QA }},
-          {"Lesson":{$regex: lesson }}
+        Subject: Subject
+      };
 
-        ]
-      });
-
-
-      let am=[];
-      // const shuffledQuestions = (allQuestions);
-      if(allQuestions.length!==0){
-        QusetionType?.map(  (n)=>{
-      
-       
-          let arr=allQuestions?.filter((item)=>{
-            // console.log("ObjectiveData.some((ele)=>ele==item.Objectives)",ChapterData.some((an)=>an==item?.Chapter_Name),item.Chapter_Name,item?.Types_Question);
-          return  ObjectiveData.some((ele)=>ele==item.Objectives)&&ChapterData.some((an)=>an==item?.Chapter_Name)&&n?.QAType==item?.Types_Question})
-            let ab=  shuffleArray(arr,n.NQA)
-          // console.log("check=>",ab.length,n.QAType,n.NQA);
-            am.push(...ab)
-        })
+      // Add filters only if they have valid values
+      if (ChapterData && ChapterData.length > 0) {
+        query.Chapter_Name = { $in: ChapterData };
       }
       
-  //  console.log("ammm",am.length,am);
-     
-        return res.status(200).json({ success:am });       
+      if (ObjectiveData && ObjectiveData.length > 0) {
+        query.Objectives = { $in: ObjectiveData };
+      }
+      
+      if (QueationTypeA && QueationTypeA.length > 0) {
+        query.Types_Question = { $in: QueationTypeA };
+      }
+      
+      // Only add Lesson filter if there are valid labels
+      if (label && label.length > 0) {
+        query.Lesson = { $in: label };
+      }
+
+      // Optional: Add exam name filter if needed
+      // if (ExamName && ExamName.length > 0) {
+      //   query["Name_of_examination.NameExamination"] = { $in: ExamName };
+      // }
+
+
+    
+      let allQuestions = await QuestionPaperModel.find(query);
+      console.log("Total questions found in DB:", allQuestions.length);
+
+      let selectedQuestions = [];
+      
+      if (allQuestions.length !== 0) {
+        // Process each chapter configuration - use arrow function to preserve 'this' context
+        for (const chapterConfig of AllChapter) {
+          const { Blueprintchapter, Blueprintobjective, Blueprintnoofquestion, BluePrintQuestiontype, BluePrintmarksperquestion } = chapterConfig;
+          
+          const questionsNeeded = Number(Blueprintnoofquestion || 0);
+          const marks = Number(BluePrintmarksperquestion || 0);
+    
+          if (questionsNeeded > 0) {
+            // Get allowed question types for this blueprint type
+            const allowedTypes = mapBlueprintTypeToDBType(BluePrintQuestiontype, marks);
+        
+            
+            // Filter questions for this specific chapter, objective, and question type
+            let filteredQuestions = allQuestions.filter((item) => {
+              const chapterMatch = item.Chapter_Name === Blueprintchapter;
+              const objectiveMatch = item.Objectives === Blueprintobjective;
+              const typeMatch = allowedTypes.length === 0 || allowedTypes.includes(item.Types_Question);
+              
+              // If lesson filter exists, also match by lesson
+              let lessonMatch = true;
+              if (label && label.length > 0) {
+                lessonMatch = label.includes(item.Lesson);
+              }
+              
+              return chapterMatch && objectiveMatch && typeMatch && lessonMatch;
+            });
+            
+            console.log(`  Available questions for this chapter+objective+type: ${filteredQuestions.length}`);
+            
+            // If no questions found with exact match, try relaxing the lesson filter
+            if (filteredQuestions.length === 0 && label && label.length > 0) {
+              console.log(`  Trying without lesson filter...`);
+              filteredQuestions = allQuestions.filter((item) => {
+                const chapterMatch = item.Chapter_Name === Blueprintchapter;
+                const objectiveMatch = item.Objectives === Blueprintobjective;
+                const typeMatch = allowedTypes.length === 0 || allowedTypes.includes(item.Types_Question);
+                return chapterMatch && objectiveMatch && typeMatch;
+              });
+              console.log(`  Available questions without lesson filter: ${filteredQuestions.length}`);
+            }
+            
+            // If still no questions, try without type filter
+            if (filteredQuestions.length === 0) {
+              console.log(`  Trying without type filter...`);
+              filteredQuestions = allQuestions.filter((item) => {
+                const chapterMatch = item.Chapter_Name === Blueprintchapter;
+                const objectiveMatch = item.Objectives === Blueprintobjective;
+                return chapterMatch && objectiveMatch;
+              });
+              console.log(`  Available questions without type filter: ${filteredQuestions.length}`);
+            }
+            
+            // If still no questions, try with just chapter match
+            if (filteredQuestions.length === 0) {
+              console.log(`  Trying with chapter only...`);
+              filteredQuestions = allQuestions.filter((item) => {
+                return item.Chapter_Name === Blueprintchapter;
+              });
+              console.log(`  Available questions with chapter only: ${filteredQuestions.length}`);
+            }
+            
+            console.log(`  Needed: ${questionsNeeded}`);
+            
+            // Shuffle and take exactly Blueprintnoofquestion number of questions
+            let selected = shuffleArray(filteredQuestions, questionsNeeded);
+            
+            console.log(`  Selected: ${selected.length}`);
+            
+            // Log the question types selected
+            if (selected.length > 0) {
+              const typeBreakdown = {};
+              selected.forEach(q => {
+                typeBreakdown[q.Types_Question] = (typeBreakdown[q.Types_Question] || 0) + 1;
+              });
+              console.log(`  Question types breakdown:`, typeBreakdown);
+            }
+            
+            selectedQuestions.push(...selected);
+          }
+        }
+      }
+      
+      console.log("\n=== Final Result ===");
+      console.log("Total questions selected:", selectedQuestions.length);
+      
+      return res.status(200).json({ success: selectedQuestions });       
     } catch (error) {
+      console.log("=== ERROR ===");
       console.log(error);
       return res.status(500).json({ error: "Internal Server Error" });
     }

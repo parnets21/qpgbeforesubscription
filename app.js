@@ -8,62 +8,10 @@ const helmet = require("helmet");
 const compression = require("compression");
 const path = require("path")
 
-// MongoDB Connection with better error handling and retry logic
-const connectDB = async () => {
-  const maxRetries = 3;
-  let retries = 0;
-
-  while (retries < maxRetries) {
-    try {
-      await mongoose.connect(process.env.DB, {
-        serverSelectionTimeoutMS: 10000,
-        socketTimeoutMS: 45000,
-        family: 4, // Force IPv4 to avoid DNS issues
-      });
-      console.log("Database Connected.........");
-      console.log("MongoDB State:", mongoose.connection.readyState);
-      break; // Exit loop on successful connection
-    } catch (err) {
-      retries++;
-      console.error(`Database Connection Attempt ${retries} Failed:`, err.message);
-      
-      if (retries >= maxRetries) {
-        console.error("Database Not Connected !!! Max retries reached.");
-        console.error("Please check:");
-        console.error("1. Your internet connection");
-        console.error("2. MongoDB Atlas IP whitelist (add 0.0.0.0/0 for testing)");
-        console.error("3. MongoDB Atlas cluster is running");
-        console.error("4. Connection string is correct");
-      } else {
-        console.log(`Retrying in 5 seconds...`);
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      }
-    }
-  }
-};
-
-connectDB();
-
-// Monitor connection events
-mongoose.connection.on('connected', () => {
-  console.log('Mongoose connected to MongoDB');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('Mongoose connection error:', err.message);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('Mongoose disconnected from MongoDB');
-  console.log('Attempting to reconnect...');
-});
-
-// Handle process termination
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  console.log('Mongoose connection closed due to app termination');
-  process.exit(0);
-});
+// MongoDB Connection
+mongoose.connect(process.env.DB)
+  .then(() => console.log("Database Connected"))
+  .catch((err) => console.error("Database Connection Failed:", err.message));
 
 const PORT = process.env.PORT || 8774;
 
